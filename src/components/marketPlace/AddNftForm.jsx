@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import "./AddNftForm.css";
 
 export function AddNftForm({ onClose }) {
   const [title, setTitle] = useState("");
@@ -7,10 +8,21 @@ export function AddNftForm({ onClose }) {
   const [author, setAuthor] = useState("");
   const [priceEth, setPriceEth] = useState("");
   const [priceUsd, setPriceUsd] = useState("");
-  const [img, setImg] = useState("");
+  const [img, setImg] = useState(null);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImg(reader.result); // base64 string
+    };
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title || !reference || !author || !priceEth || !priceUsd || !img) {
@@ -27,100 +39,89 @@ export function AddNftForm({ onClose }) {
       img,
     };
 
-    axios
-      .post("http://localhost:3000/nfts", newNft)
-      .then(() => {
-        onClose(); // Close the form on successful submission
-      })
-      .catch((error) => {
-        console.error("Error adding NFT:", error);
-      });
+    try {
+      await axios.post("http://localhost:3000/nfts", newNft);
+      onClose(); // Close the form on successful submission
+    } catch (error) {
+      console.error("Error adding NFT:", error);
+    }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-        <h2 className="text-2xl font-semibold mb-4">Add New NFT</h2>
-        {error && <div className="text-red-500 mb-4">{error}</div>}
+    <div className="add-nft-overlay">
+      <div className="add-nft-container">
+        <h2 className="add-nft-title">Add New NFT</h2>
+        {error && <div className="add-nft-error">{error}</div>}
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Title</label>
+          <div className="add-nft-field">
+            <label className="add-nft-label">Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="add-nft-input"
               placeholder="Enter NFT title"
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Reference</label>
+          <div className="add-nft-field">
+            <label className="add-nft-label">Reference</label>
             <input
               type="text"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="add-nft-input"
               placeholder="Enter NFT reference"
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Author</label>
+          <div className="add-nft-field">
+            <label className="add-nft-label">Author</label>
             <input
               type="text"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="add-nft-input"
               placeholder="Enter author name"
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">
-              Price (ETH)
-            </label>
+          <div className="add-nft-field">
+            <label className="add-nft-label">Price (ETH)</label>
             <input
               type="number"
               step="0.01"
               value={priceEth}
               onChange={(e) => setPriceEth(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="add-nft-input"
               placeholder="Enter price in ETH"
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">
-              Price (USD)
-            </label>
+          <div className="add-nft-field">
+            <label className="add-nft-label">Price (USD)</label>
             <input
               type="number"
               step="0.01"
               value={priceUsd}
               onChange={(e) => setPriceUsd(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="add-nft-input"
               placeholder="Enter price in USD"
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Image URL</label>
+          <div className="add-nft-field">
+            <label className="add-nft-label">Image</label>
             <input
-              type="text"
-              value={img}
-              onChange={(e) => setImg(e.target.value)}
-              className="w-full border rounded px-3 py-2"
-              placeholder="Enter image URL"
+              type="file"
+              onChange={handleFileChange}
+              className="add-nft-input"
             />
           </div>
-          <div className="flex justify-end gap-4">
+          <div className="add-nft-actions">
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-500 text-white px-4 py-2 rounded"
+              className="add-nft-cancel-button"
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
+            <button type="submit" className="add-nft-submit-button">
               Add NFT
             </button>
           </div>
